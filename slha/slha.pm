@@ -358,29 +358,27 @@ sub dd{ sprintf("    %16.8e   %3d" . ("   %9d" x ($#_-1)) . "   %s\n", $_[0] || 
 
 sub write{
   my $self = shift;
+  my $param_order = shift || [];
+  my $decay_order = shift || [];
   my %done;
 
   my $result = [];
 
   # PARAM BLOCK FIRST.
-  foreach(@{$self->{order}}){
-    next if /^DECAY ([\d+-]+)$/;
+  foreach(@$param_order, @{$self->{order}}, $self->block_list()){
+    $_ = uc($_);
+    next if /^DECAY ([\d+-]+)$/ or $done{$_};
     $done{$_} = 1;
-    _write_block($result, $self, $_);
-  }
-  foreach($self->block_list()){
-    next if $_ eq 'decay' or $done{$_};
     _write_block($result, $self, $_);
   }
 
   # THEN DECAY BLOCK.
-  foreach(@{$self->{order}}){
-    next unless /^DECAY ([\d+-]+)$/;
-    $done{"DECAY $1"} = 1;
-    _write_decay($result, $self, $1);
-  }
-  foreach(keys %{$self->{data}->{decay}}){
+  my @order = ();
+  foreach (@{$self->{order}}) { push(@order, $1) if /^DECAY ([\d+-]+)$/; }
+  foreach(@$decay_order, @order, keys %{$self->{data}->{decay}}){
+    $_ = uc($_);
     next if $done{"DECAY $_"};
+    $done{"DECAY $_"} = 1;
     _write_decay($result, $self, $_);
   }
   foreach(@$result){ s/\s+$//img; $_ .= "\n"; }

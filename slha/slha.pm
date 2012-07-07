@@ -18,7 +18,7 @@ sub _strip{
 sub _block_key{
   my @a = @_;
   _strip($_) foreach @a;
-  return (@_ == 0) ? 0 : join(" ", @_);
+  return (@_ == 0) ? 'empty' : join(" ", @_);
 }
 sub _parse_block_line{
   my $line = shift;
@@ -39,7 +39,7 @@ sub _parse_block_line{
       if(@a == 0){
         @result = ();
       }elsif(@a == 1){
-        @result = (0, $a[0]);
+        @result = ('empty', $a[0]);
       }elsif(@a == 2){
         @result = @a;
       }else{
@@ -85,7 +85,7 @@ sub _construct {
   my $data  = {};
      # FOR PARAMETER BLOCKS
      # {data}->{ BLOCK_NAME }->{ q }       = Q
-     # {data}->{ BLOCK_NAME }->{ 0 }       = VALUE for no-index block.
+     # {data}->{ BLOCK_NAME }->{ empty }   = VALUE for no-index block.
      # {data}->{ BLOCK_NAME }->{"$I"}      = VALUE for one-index block.
      # {data}->{ BLOCK_NAME }->{"$I1 $I2"} = VALUE for two-index block.
 
@@ -98,7 +98,7 @@ sub _construct {
   my $comment = {};
      # FOR PARAMETER BLOCKS
      # {comment}->{ BLOCK_NAME }->{ head }
-     # {comment}->{ BLOCK_NAME }->{ 0 }
+     # {comment}->{ BLOCK_NAME }->{ empty }
      # {comment}->{ BLOCK_NAME }->{"$I"}
      # {comment}->{ BLOCK_NAME }->{"$I1 $I2"}
 
@@ -193,7 +193,7 @@ sub key_list{
   my $block = shift;
   $block = uc($block);
   my @a = ();
-  foreach(keys %{$self->{data}->{$block}}){ push(@a, $_) unless $_ eq 'q'; }
+  foreach(keys %{$self->{data}->{$block}}){ push(@a, $_) if $_ ne 'q'; } # allow 'empty'
   return @a;
 }
 
@@ -257,12 +257,12 @@ sub _param_key{
   if(@keys == 0){
     my $flag = 0;
     if(defined $self->{data}->{$block}){
-      foreach(keys %{$self->{data}->{$block}}){
-        if($_ != 0){ $flag = 1; last; }
+      foreach($self->key_list($block)){
+        if($_ ne 'empty'){ $flag = 1; last; }
       }
     }
     die "[ERROR] Block [$block] needs a key." if $flag;
-    return "0";
+    return 'empty';
   }else{
     _strip($_) foreach @keys;
     return join(" ", @keys);
@@ -343,7 +343,7 @@ sub set_comment{
 
 # ======================================================================= OUTPUT
 
-sub is_number { $_[0] =~ /^[+-]?(\d*\.)\d+([de][+-]?\d+)?$/i; }
+sub is_number { $_[0] =~ /^[+-]?(\d*\.)?\d+([de][+-]?\d+)?$/i; }
 sub is_integer{ is_number($_[0]) && $_[0] !~ /[\.de]/i; }
 sub is_float  { is_number($_[0]) && $_[0] =~ /[\.de]/i; }
 
@@ -368,7 +368,7 @@ sub write{
     $done{$_} = 1;
     _write_block($result, $self, $_);
   }
-  foreach(keys %{$self->{data}}){
+  foreach($self->block_list()){
     next if $_ eq 'decay' or $done{$_};
     _write_block($result, $self, $_);
   }
@@ -412,7 +412,7 @@ sub _write_block{
 
     if($k =~ /^(\d+) (\d+)$/){
       push(@$result, f2($1, $2, $data->{$k}, $c));
-    }elsif($k == 0){
+    }elsif($k eq 'empty'){
       push(@$result, f0($data->{$k}, $c));
     }else{
       push(@$result, f($k, $data->{$k}, $c));

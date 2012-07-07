@@ -127,7 +127,7 @@ ok($slha->v('newblock', 6, 7) == 10);
 ok($copy->v('newblock', 6, 7) == 2000);
 
 print "---------------------------------------- Write\n";
-foreach($slha->write()){print;}
+foreach($slha->write([qw/NewBlock NotExistingBlock/])){print;}
 
 __END__
 

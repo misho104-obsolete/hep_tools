@@ -2,6 +2,7 @@ package SLHA;
 
 use strict;
 use integer;
+use Storable qw(dclone);
 
 # ================================================================== CONSTRUCTOR
 sub _fortranparse{
@@ -75,6 +76,13 @@ sub new_from_stdin {
 sub new_from_list{
   my $class = shift;
   return _construct($class, '<LIST>', @_);
+}
+
+sub copy {
+  my $self = shift;
+  die unless ref $self;
+  my $copy = Storable::dclone($self);
+  return $copy;
 }
 
 sub _construct {

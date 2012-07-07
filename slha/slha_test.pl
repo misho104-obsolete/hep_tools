@@ -115,7 +115,19 @@ ok(!defined($slha->{data}->{DOUBLEARGBLOCK}->{"2 1"}));
 $slha->remove_param('NoArgBlockA');
 ok(!defined($slha->{data}->{NOARGBLOCKA}));
 
-#foreach($slha->write()){print;}
+
+print "---------------------------------------- Copy\n";
+my $copy = $slha->copy();
+$copy->remove_block('doubleargblock');
+ok(defined($slha->{data}->{DOUBLEARGBLOCK}));
+ok(!defined($copy->{data}->{DOUBLEARGBLOCK}));
+
+$copy->set_param('NewBlock', 6, 7, 2000);
+ok($slha->v('newblock', 6, 7) == 10);
+ok($copy->v('newblock', 6, 7) == 2000);
+
+print "---------------------------------------- Write\n";
+foreach($slha->write()){print;}
 
 __END__
 

@@ -269,6 +269,15 @@ sub _param_key{
   }
 }
 
+sub set_param_and_comment{
+  my $self    = shift;
+  my $block   = shift;
+  my $comment = pop;
+  my $value   = pop;
+  $self->set_param($block, @_, $value);
+  $self->set_comment($block, @_, $comment);
+}
+
 sub set_param{
   my $self  = shift;
   my $block = shift;
@@ -357,28 +366,28 @@ sub write{
   foreach(@{$self->{order}}){
     next if /^DECAY ([\d+-]+)$/;
     $done{$_} = 1;
-    write_block($result, $self, $_);
+    _write_block($result, $self, $_);
   }
   foreach(keys %{$self->{data}}){
     next if $_ eq 'decay' or $done{$_};
-    write_block($result, $self, $_);
+    _write_block($result, $self, $_);
   }
 
   # THEN DECAY BLOCK.
   foreach(@{$self->{order}}){
     next unless /^DECAY ([\d+-]+)$/;
     $done{"DECAY $1"} = 1;
-    write_decay($result, $self, $1);
+    _write_decay($result, $self, $1);
   }
   foreach(keys %{$self->{data}->{decay}}){
     next if $done{"DECAY $_"};
-    write_decay($result, $self, $_);
+    _write_decay($result, $self, $_);
   }
   foreach(@$result){ s/\s+$//img; $_ .= "\n"; }
   return @$result;
 }
 
-sub write_block{
+sub _write_block{
   my $result = shift;
   my $self   = shift;
   my $block  = shift;
@@ -412,7 +421,7 @@ sub write_block{
   push(@$result, "#\n");
 }
 
-sub write_decay{
+sub _write_decay{
   my $result = shift;
   my $self = shift;
   my $block = shift;
@@ -429,6 +438,22 @@ sub write_decay{
     push(@$result, dd(@{$_}, $c));
   }
   push(@$result, "#\n");
+}
+
+sub write_block{
+  my $self = shift;
+  my $block = shift;
+  my @result = ();
+  _write_block(\@result, $self, $block);
+  return @result;
+}
+
+sub write_decay{
+  my $self = shift;
+  my $block = shift;
+  my @result = ();
+  _write_decay(\@result, $self, $block);
+  return @result;
 }
 
 1;

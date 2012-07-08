@@ -357,12 +357,17 @@ sub is_float  { is_number($_[0]) && $_[0] =~ /[\.de]/i; }
 
 sub numstr{ sprintf(is_float($_[0]) ? "%16.8e" : is_number($_[0]) ? "%9d       " : "%-16s", $_[0]); }
 sub e { sprintf("%16.8e", $_[0] || 0); }
-sub f { sprintf("  %4d  %s   %s\n",    $_[0]||0,           numstr($_[1]||0), $_[2]||""); }
-sub fc{ sprintf("# %4d  %s   %s\n",    $_[0]||0,           numstr($_[1]||0), $_[2]||""); }
-sub f2{ sprintf(" %2d %2d  %s   %s\n", $_[0]||0, $_[1]||0, numstr($_[2]||0), $_[3]||""); }
-sub f0{ sprintf("        %s   %s\n",                       numstr($_[0]||0), $_[1]||""); }
-sub dh{ sprintf("DECAY %9d   %16.8e\n", $_[0] || 0, $_[1] || 0); }
-sub dd{ sprintf("    %16.8e   %3d" . ("   %9d" x ($#_-1)) . "   %s\n", $_[0] || 0, ($#_-1) || 0, @_[1..$#_]); }
+
+# generic
+sub f { sprintf(" %5d   %s   %s\n",     $_[0]||0,           numstr($_[1]||0), $_[2]||""); }
+sub fc{ sprintf("#%5d   %s   %s\n",     $_[0]||0,           numstr($_[1]||0), $_[2]||""); }
+sub f2{ sprintf(" %2d %2d   %s   %s\n", $_[0]||0, $_[1]||0, numstr($_[2]||0), $_[3]||""); }
+sub f0{ sprintf("         %s   %s\n",                       numstr($_[0]||0), $_[1]||""); }
+# for mass block
+sub fm{ sprintf(" %9d   %s   %s\n",     $_[0]||0,           numstr($_[1]||0), $_[2]||""); }
+# for decay block
+sub dh{ sprintf("DECAY %9d   %16.8e   %s\n", $_[0]||0, $_[1]||0, $_[2]||""); }
+sub dd{ sprintf("   %16.8e   %2d   " . ("%9d " x ($#_-1)) . "  %s\n", $_[0] || 0, ($#_-1) || 0, @_[1..$#_]); }
 
 sub write{
   my $self = shift;
@@ -405,8 +410,8 @@ sub _write_block{
   my $data = $self->{data}->{$block};
   my $com  = $self->{comment}->{$block};
 
-  my $q  = defined($data->{q})   ? " Q = " . e($data->{q}) : "";
-  my $hc = defined($com->{head}) ? "    " . $com->{head} : "";
+  my $q  = defined($data->{q})   ? " Q=" . e($data->{q}) : "";
+  my $hc = defined($com->{head}) ? "   " . $com->{head} : "";
 
   push(@$result, "BLOCK $block$q$hc\n");
   foreach my $k(sort { my ($c, $d) = ($a, $b);
@@ -416,7 +421,9 @@ sub _write_block{
     next if $k eq 'q';
     my $c = $com->{$k} || "";
 
-    if($k =~ /^(\d+) (\d+)$/){
+    if($block eq 'MASS'){
+      push(@$result, fm($k, $data->{$k}, $c));
+    }elsif($k =~ /^(\d+) (\d+)$/){
       push(@$result, f2($1, $2, $data->{$k}, $c));
     }elsif($k eq 'empty'){
       push(@$result, f0($data->{$k}, $c));

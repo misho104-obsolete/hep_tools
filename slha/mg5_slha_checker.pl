@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use hepexp::slha;
+use hep_tools::slha::slha;
 
 # ------ TINY TOOLS ------------------------------------------------------------
 our $EPSILON = 0.0001;

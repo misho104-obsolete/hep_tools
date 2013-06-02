@@ -236,7 +236,7 @@ sub br{
   my $id   = shift;
   my @daughters = sort{$a<=>$b}(@_);
   _strip($_) foreach @daughters;
-  return $self->{data}->{decay}->{$id}->{join(" ", @daughters)};
+  return $self->{data}->{decay}->{$id}->{join(" ", @daughters)} || 0;
 }
 
 # ================================================================= MANIPURATORS
@@ -359,8 +359,11 @@ sub set_decay_rate{
 sub clear_decay_channels{
   my $self  = shift;
   my $id    = shift;
-  my $old_rate = $self->{data}->{decay}->{$id}->{rate};
-  $self->{data}->{decay}->{$id} = {all => [], rate => $old_rate};
+  if($self->d($id) > 0){
+    $self->{data}->{decay}->{$id} = {all => [], rate => $self->d($id)};
+  }elsif(exists $self->{data}->{decay}->{$id}){
+    delete $self->{data}->{decay}->{$id};
+  }
 }
 
 sub add_decay_channel{
@@ -368,6 +371,8 @@ sub add_decay_channel{
   my $id    = shift;
   my $br    = shift;
   my @daugh = sort{$a<=>$b}(@_);
+
+  if($self->d($id) == 0){ die "[ERROR] Set positive decay rate before setting decay channels."; }
 
   my $key = join(" ", @daugh);
   push(@{$self->{data}->{decay}->{$id}->{all}}, [$br, @daugh]);

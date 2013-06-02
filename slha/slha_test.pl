@@ -130,12 +130,17 @@ ok(dcmp($slha->br(1000021, -1000001,  1), 0.0217368689)); # unchanged
 print "---------------------------------------- Modify Decay block (2)\n";
 $slha->clear_decay_channels(6);
 ok(dcmp($slha->d(      6),  1.2345));
+ok(dcmp($slha->br(6,5,24), 0));
 ok(@{$slha->dlist(      6)} == 0);
+
 ok(@{$slha->dlist(1000021)} == 2); #unchanged
 
 $slha->add_decay_channel(6, 1, 3, 24); # 100% to 3 and 24
 ok(@{$slha->dlist(      6)} == 1);
-ok(dcmp($slha->br(6,24,3), 1.000000000 ));
+ok(dcmp($slha->br(6,24,3), 1));
+ok(dcmp($slha->br(6,24,5), 0));
+ok(dcmp($slha->br(6,3,24), 1));
+ok(dcmp($slha->br(6,5,24), 0));
 
 print "---------------------------------------- Modify Decay block (3)\n";
 $slha->clear_decay_channels(6);
@@ -147,6 +152,13 @@ ok(dcmp($slha->br(6,5,24), 0.99));
 
 ok(dcmp($slha->br(1000021,  1000001, -1), 0.0217368689)); # unchanged
 ok(dcmp($slha->br(1000021, -1000001,  1), 0.0217368689)); # unchanged
+
+print "---------------------------------------- Modify Decay block (4)\n";
+$slha->set_decay_rate(123, 2.4);
+$slha->add_decay_channel(123, 0.5, -1, -2, -3, -4, -5);
+$slha->add_decay_channel(123, 0.5, 1, 2, 3, 4, 5, 6, 7);
+ok(@{$slha->dlist(123)} == 2);
+ok(dcmp($slha->br(123,2,4,6,1,3,5,7), 0.5));
 
 print "---------------------------------------- Copy\n";
 my $copy = $slha->copy();

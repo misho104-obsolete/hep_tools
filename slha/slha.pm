@@ -349,6 +349,31 @@ sub set_comment{
   $self->{comment}->{$block}->{$key} = $value;
 }
 
+sub set_decay_rate{
+  my $self  = shift;
+  my $id    = shift;
+  my $value = shift;
+  $self->{data}->{decay}->{$id}->{rate} = $value;
+}
+
+sub clear_decay_channels{
+  my $self  = shift;
+  my $id    = shift;
+  my $old_rate = $self->{data}->{decay}->{$id}->{rate};
+  $self->{data}->{decay}->{$id} = {all => [], rate => $old_rate};
+}
+
+sub add_decay_channel{
+  my $self  = shift;
+  my $id    = shift;
+  my $br    = shift;
+  my @daugh = sort{$a<=>$b}(@_);
+
+  my $key = join(" ", @daugh);
+  push(@{$self->{data}->{decay}->{$id}->{all}}, [$br, @daugh]);
+  $self->{data}->{decay}->{$id}->{$key} = $br;
+}
+
 # ======================================================================= OUTPUT
 
 sub is_number { $_[0] =~ /^[+-]?(\d*\.)?\d+([de][+-]?\d+)?$/i; }

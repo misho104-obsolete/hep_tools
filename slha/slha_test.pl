@@ -116,6 +116,38 @@ $slha->remove_param('NoArgBlockA');
 ok(!defined($slha->{data}->{NOARGBLOCKA}));
 
 
+print "---------------------------------------- Modify Decay block (1)\n";
+$slha->set_decay_rate(6, 1.2345);
+ok(dcmp($slha->d(      6),  1.2345));
+ok(dcmp($slha->d(1000005), 10.7363639 ));     # unchanged
+
+ok(dcmp($slha->br(6,5,24), 1.000000000 ));    # unchanged
+ok(dcmp($slha->br(6,24,5), 1.000000000 ));    # unchanged
+
+ok(dcmp($slha->br(1000021,  1000001, -1), 0.0217368689)); # unchanged
+ok(dcmp($slha->br(1000021, -1000001,  1), 0.0217368689)); # unchanged
+
+print "---------------------------------------- Modify Decay block (2)\n";
+$slha->clear_decay_channels(6);
+ok(dcmp($slha->d(      6),  1.2345));
+ok(@{$slha->dlist(      6)} == 0);
+ok(@{$slha->dlist(1000021)} == 2); #unchanged
+
+$slha->add_decay_channel(6, 1, 3, 24); # 100% to 3 and 24
+ok(@{$slha->dlist(      6)} == 1);
+ok(dcmp($slha->br(6,24,3), 1.000000000 ));
+
+print "---------------------------------------- Modify Decay block (3)\n";
+$slha->clear_decay_channels(6);
+$slha->add_decay_channel(6, 0.99, 5, 24); # 99% to 5 and 24
+$slha->add_decay_channel(6, 0.01, 1, 24); #  1% to 1 and 24
+ok(@{$slha->dlist(      6)} == 2);
+ok(dcmp($slha->br(6,24,1), 0.01));
+ok(dcmp($slha->br(6,5,24), 0.99));
+
+ok(dcmp($slha->br(1000021,  1000001, -1), 0.0217368689)); # unchanged
+ok(dcmp($slha->br(1000021, -1000001,  1), 0.0217368689)); # unchanged
+
 print "---------------------------------------- Copy\n";
 my $copy = $slha->copy();
 $copy->remove_block('doubleargblock');

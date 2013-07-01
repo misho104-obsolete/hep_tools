@@ -179,7 +179,7 @@ sub _construct {
          data      => $data,
          comment   => $comment,
          order     => $order,
-        }, $class;
+        }, "$class";
 }
 
 sub DESTROY{

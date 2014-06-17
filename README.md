@@ -1,4 +1,8 @@
 hep_tools
 =========
 
-Some useful tools for High-Energy Physics researchers. The codes are under the MIT license.
+This repository is discontinued.
+
+SLHA.pm is moved to http://github.com/misho104/p5-slha .
+
+
